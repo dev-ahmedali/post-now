@@ -51,7 +51,7 @@ export default function Widgets({ newsResults, randomUserResults }) {
                 {randomUser.name.first + ' ' + randomUser.name.last}
               </h5>
             </div>
-            <button className="ml-auto bg-black text-white rounded-full text-sm px-3.5 py-1.5 font-bold">
+            <button className="ml-auto bg-red-400 text-white rounded-full text-sm px-3.5 py-1.5 font-bold">
               Follow
             </button>
           </div>
