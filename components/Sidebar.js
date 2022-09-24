@@ -8,7 +8,7 @@ export default function Sidebar() {
     <div className='hidden sm:flex flex-col p-2 xl:items-start fixed h-full xl:ml-24'>
         {/* logo */}
         <div className='hoverEffect p-0 hover:bg-red-100 xl:px-1'>
-            <h3>Post Now</h3>
+            <img className='w-36' src='/logo.png' alt='post now logo'/>
         </div>
         {/* menu */}
         <div className='mt-4 mb-2.5 xl:items-start'>
