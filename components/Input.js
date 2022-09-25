@@ -1,10 +1,49 @@
 /* eslint-disable @next/next/no-img-element */
+import { async } from '@firebase/util';
 import { EmojiHappyIcon, PhotographIcon } from '@heroicons/react/outline';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import {useSession, signOut} from "next-auth/react"
+import { useRef, useState } from 'react';
+import { db, storage } from '../firebase';
 
 export default function Input() {
   const {data: session} = useSession()
-  console.log(session);
+  const [input, setInput] = useState("")
+  const filePickerRef = useRef(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+
+  const sendPost = async () => {
+    const docRef = await addDoc(collection(db, "posts"), {
+      id: session.user.uid,
+      text: input,
+      userImg: session.user.image,
+      timeStamp: serverTimestamp(),
+      name: session.user.name,
+      username: session.user.username,
+    })
+    const imageRef = ref(storage, `posts/${docRef.id}/image`);
+
+  if(setSelectedFile) {
+    await uploadString(imageRef, selectedFile, "data_url").then(async()=> {
+      const downloadURL = await getDownloadURL(imageRef)  
+    })
+  }
+    setInput("")
+  }
+
+  
+
+  const addImageToPost = (e) => {
+    const reader = new FileReader()
+    if(e.target.files[0]){
+      reader.readAsDataURL(e.target.files[0])
+    }
+
+    reader.onload = (readerEvent) => {
+      setSelectedFile(readerEvent.target.result);
+    }
+  }
   return (
     <>
     {session && (
@@ -21,14 +60,19 @@ export default function Input() {
             className="w-full border-none focus:ring-0 text-lg placeholder-gray-700 tracking-wide min-h-[50px] text-gray-700"
             rows="2"
             placeholder="what's happening?"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
           ></textarea>
         </div>
         <div className="flex items-center justify-between pt-2.5">
           <div className="flex ">
+            <div className='' onClick={() => filePickerRef.current.click()}>
             <PhotographIcon className="h-10 w-10 hoverEffect p-2 text-pink-500 hover:bg-pink-100" />
+            <input type="file" hidden ref={filePickerRef} onClick={addImageToPost}/>
+            </div>
             <EmojiHappyIcon className="h-10 w-10 hoverEffect p-2 text-pink-500 hover:bg-pink-100" />
           </div>
-          <button className="bg-red-400 text-white px-4 py-1.5 rounded-full font-bold shadow-md hover:brightness-95 disabled:opacity-50">
+          <button onClick={sendPost} disabled={!input.trim()} className="bg-red-400 text-white px-4 py-1.5 rounded-full font-bold shadow-md hover:brightness-95 disabled:opacity-50">
             Post
           </button>
         </div>
