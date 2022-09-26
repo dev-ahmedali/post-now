@@ -1,19 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
-import { async } from '@firebase/util';
-import { EmojiHappyIcon, PhotographIcon } from '@heroicons/react/outline';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
-import {useSession, signOut} from "next-auth/react"
 import { useRef, useState } from 'react';
 import { db, storage } from '../firebase';
+import {useSession, signOut} from "next-auth/react"
+import { EmojiHappyIcon, PhotographIcon, XIcon } from '@heroicons/react/outline';
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 export default function Input() {
   const {data: session} = useSession()
   const [input, setInput] = useState("")
   const filePickerRef = useRef(null)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const sendPost = async () => {
+
+
+    if(loading) return;
+    setLoading(true)
     const docRef = await addDoc(collection(db, "posts"), {
       id: session.user.uid,
       text: input,
@@ -22,14 +26,21 @@ export default function Input() {
       name: session.user.name,
       username: session.user.username,
     })
+    
     const imageRef = ref(storage, `posts/${docRef.id}/image`);
 
-  if(setSelectedFile) {
-    await uploadString(imageRef, selectedFile, "data_url").then(async()=> {
-      const downloadURL = await getDownloadURL(imageRef)  
-    })
-  }
+    if (selectedFile) {
+      await uploadString(imageRef, selectedFile, "data_url").then(async () => {
+        const downloadURL = await getDownloadURL(imageRef);
+        await updateDoc(doc(db, "posts", docRef.id), {
+          image: downloadURL,
+        })
+       })
+    }
+
     setInput("")
+    setSelectedFile(null)
+    setLoading(false)
   }
 
   
@@ -64,17 +75,28 @@ export default function Input() {
             onChange={(e) => setInput(e.target.value)}
           ></textarea>
         </div>
+        {selectedFile && (
+          <div className='relative'>
+            <XIcon onClick={() => setSelectedFile(null)} className='h-5 text-black absolute hover:bg-red-400 hover:rounded-full hover:text-white cursor-pointer'/>
+            <img src={selectedFile} className={`${loading && "animate-pulse"}`}/>
+          </div>
+        )}
         <div className="flex items-center justify-between pt-2.5">
+          {!loading && (
+            <>
           <div className="flex ">
             <div className='' onClick={() => filePickerRef.current.click()}>
             <PhotographIcon className="h-10 w-10 hoverEffect p-2 text-pink-500 hover:bg-pink-100" />
-            <input type="file" hidden ref={filePickerRef} onClick={addImageToPost}/>
+            <input type="file" hidden ref={filePickerRef} onChange={addImageToPost}/>
             </div>
             <EmojiHappyIcon className="h-10 w-10 hoverEffect p-2 text-pink-500 hover:bg-pink-100" />
           </div>
           <button onClick={sendPost} disabled={!input.trim()} className="bg-red-400 text-white px-4 py-1.5 rounded-full font-bold shadow-md hover:brightness-95 disabled:opacity-50">
             Post
           </button>
+          </>
+          )}
+         
         </div>
       </div>
     </div>
