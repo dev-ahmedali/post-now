@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
 import {
   ChartBarIcon,
@@ -54,11 +55,12 @@ export default function Post({ post }) {
   }
 
   async function deletePost() {
-    if (window.confirm('Are you sure you want to delete to this post?'))
-    {
+    if (window.confirm('Are you sure you want to delete to this post?')) {
       deleteDoc(doc(db, 'posts', post.id));
-      deleteObject(ref(storage, `posts/${post.id}/image`));
-    } 
+      if (post.data().image) {
+        deleteObject(ref(storage, `posts/${post.id}/image`));
+      }
+    }
   }
   return (
     <div className="flex p-3 cursor-pointer border-b border-gray-200">
@@ -93,11 +95,7 @@ export default function Post({ post }) {
         </p>
 
         {/* post image */}
-        <img
-          className="rounded-2xl mr-2"
-          src={post.data().image}
-          alt="post image"
-        />
+        <img className="rounded-2xl mr-2" src={post.data().image} />
         {/* icons */}
 
         <div className="flex justify-between text-gray-500 p-2">
