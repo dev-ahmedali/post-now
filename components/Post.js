@@ -23,10 +23,12 @@ import { useEffect, useState } from 'react';
 import { deleteObject, ref } from 'firebase/storage';
 import { useRecoilState } from 'recoil';
 import { modalState, postIdState } from '../atom/modalAtom';
+import { comment } from 'postcss';
 
 export default function Post({ post }) {
   const { data: session } = useSession();
   const [likes, setLikes] = useState([]);
+  const [comments, setComments] = useState([]);
   const [hasLiked, setHasLikes] = useState(false);
   const [open, setOpen] = useRecoilState(modalState)
   const [postId, setPostId] = useRecoilState(postIdState)
@@ -37,6 +39,16 @@ export default function Post({ post }) {
       (snapshot) => setLikes(snapshot.docs)
     );
   }, [db]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, 'posts', post.id, 'comments'),
+      (snapshot) => setComments(snapshot.docs)
+    );
+  }, [db]);
+
+
+
 
   useEffect(() => {
     setHasLikes(
@@ -75,7 +87,7 @@ export default function Post({ post }) {
         alt="user image"
       />
       {/* right side */}
-      <div className="">
+      <div className="flex-1">
         {/* header */}
         <div className="flex items-center justify-between">
           {/* post user info */}
@@ -103,6 +115,8 @@ export default function Post({ post }) {
         {/* icons */}
 
         <div className="flex justify-between text-gray-500 p-2">
+          <div className='flex items-center select-none'>
+            
           <ChatIcon onClick={() => {
             if(!session) {
               signIn();
@@ -112,6 +126,11 @@ export default function Post({ post }) {
 
             }
           }} className="h-9 hoverEffect w-9 p-2 hover:text-pink-500 hover:bg-pink-100" />
+          {comment.length > 0 && (
+            <span className='text-sm'>{comment.length}</span>
+          )}
+          </div>
+
           {session?.user.uid === post?.data().id && (
             <TrashIcon
               onClick={deletePost}
@@ -132,7 +151,7 @@ export default function Post({ post }) {
             )}
             {likes.length > 0 && (
               <span
-                className={`${hasLiked && 'text-red-600'}text-sm select-none`}
+                className={`${hasLiked && 'text-red-600'} text-sm select-none`}
               >
                 {likes.length}
               </span>
