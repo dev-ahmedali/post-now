@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase';
 import Comment from '../../components/Comment';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function PostPage({ newsResults, randomUserResults }) {
   const router = useRouter();
@@ -33,7 +34,8 @@ export default function PostPage({ newsResults, randomUserResults }) {
       query(
         collection(db, 'posts', id, 'comments'),
         orderBy('timestamp', 'desc')
-      ), (snapshot) => setComments(snapshot.docs)
+      ),
+      (snapshot) => setComments(snapshot.docs)
     );
   }, [db, id]);
 
@@ -60,19 +62,28 @@ export default function PostPage({ newsResults, randomUserResults }) {
             </h2>
           </div>
           <Post id={id} post={post} />
-            {comments.length > 0 && (
-              <div className=''>
+          {comments.length > 0 && (
+            <div className="">
+              <AnimatePresence>
                 {comments.map((comment) => (
-                  <Comment key={comment.id} commentId={comment.id}
-                  originalPostId={id} 
-                  comment={comment.data()}/>
+                  <motion.div
+                    key={comment.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                  >
+                    <Comment
+                      key={comment.id}
+                      commentId={comment.id}
+                      originalPostId={id}
+                      comment={comment.data()}
+                    />
+                  </motion.div>
                 ))}
-
-              </div>
-              
-            )}
-          
-          
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         {/* widget */}
