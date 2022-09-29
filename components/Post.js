@@ -166,7 +166,9 @@ export default function Post({ post, id }) {
           <ChartBarIcon className="h-9 hoverEffect w-9 p-2 hover:text-pink-500 hover:bg-pink-100" />
         </div>
 
-        <div></div>
+        <div>
+          
+        </div>
       </div>
     </div>
   );
