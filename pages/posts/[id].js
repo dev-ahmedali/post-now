@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { ArrowLeftIcon } from '@heroicons/react/outline';
 import Head from 'next/head';
 import CommentModal from '../../components/CommentModal';
